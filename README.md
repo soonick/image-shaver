@@ -6,5 +6,23 @@ JS library that you can use to crop images in the browser
 
 ```js
 var container = document.getElementById('shaver-container');
-imageShaver.start(container, 'http://example.com/some-image.jpg');
+imageShaver(container, options);
+```
+
+### Options
+
+Options is an object the following keys:
+
+**image**
+
+The url of the image that will be cropped
+
+## Development
+
+### Tests
+
+To run the tests use:
+
+```bash
+gulp health
 ```

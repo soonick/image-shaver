@@ -1,3 +1,3 @@
 var gulp = require('gulp');
 
-gulp.task('health', ['eslint']);
+gulp.task('health', ['eslint', 'karma']);
