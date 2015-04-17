@@ -59,3 +59,41 @@ ImageShaver.prototype.drawHiddenImage = function() {
   this.originalCtx.drawImage(this.hiddenImage, 0, 0, this.original.offsetWidth,
       this.original.offsetHeight);
 };
+
+/**
+ * Calculates the largest possible rectangle to draw inside the original
+ * container, respecting the specified ratio
+ * @returns {array} largest - Array containing 4 items: x coordinate, y
+ *          coordinate, width and height of the resulting rectangle.
+ */
+ImageShaver.prototype.calculateLargestRectangle = function() {
+  var ratio = this.options.ratio[0] / this.options.ratio[1];
+  var originalRatio = this.original.offsetWidth / this.original.offsetHeight;
+  var height = this.original.offsetHeight;
+  var width = this.original.offsetWidth;
+  var left = 0;
+  var top = 0;
+
+  if (ratio !== originalRatio) {
+    if (ratio > originalRatio) {
+      width = this.original.offsetWidth;
+      height = parseInt(width * ratio, 10);
+      top = (this.original.offsetHeight - height) / 2;
+    } else {
+      height = this.original.offsetHeight;
+      width = parseInt(height * ratio, 10);
+      left = (this.original.offsetWidth - width) / 2;
+    }
+  }
+
+  return [left, top, width, height];
+};
+
+/**
+ * Shows crop rectangle on top of the original image. Crop rectangle will always
+ * have the same ratio, but the user can move it around and resize it
+ */
+this.showCropRectangle = function() {
+  var rect = this.calculateLargestRectangle();
+  this.originalCtx.rect.apply(null, rect);
+};

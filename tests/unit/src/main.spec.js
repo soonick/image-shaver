@@ -76,4 +76,56 @@ describe('imageShaver', function() {
       );
     });
   });
+
+  describe('calculateLargestRectangle', function() {
+    beforeEach(function() {
+      document.body.appendChild(this.instance.original);
+    });
+
+    afterEach(function() {
+      document.body.removeChild(this.instance.original);
+    });
+
+    it('returns largest possible rectangle when original is wider and ratio is 1:1', function() {
+      this.instance.original.style.width = '400px';
+      this.instance.original.style.height = '100px';
+
+      this.instance.options.ratio = [1, 1];
+
+      var actual = this.instance.calculateLargestRectangle();
+      var expected = [150, 0, 100, 100];
+      proclaim.deepEqual(expected, actual);
+    });
+
+    it('returns largest possible rectangle when original is taller and ratio is 1:1', function() {
+      this.instance.original.style.width = '300px';
+      this.instance.original.style.height = '400px';
+
+      this.instance.options.ratio = [1, 1];
+
+      var actual = this.instance.calculateLargestRectangle();
+      var expected = [0, 50, 300, 300];
+      proclaim.deepEqual(expected, actual);
+    });
+
+    it('returns rectangle the same size of the image when ratio is the same', function() {
+      this.instance.original.style.width = '300px';
+      this.instance.original.style.height = '400px';
+      this.instance.options.ratio = [3, 4];
+
+      var actual = this.instance.calculateLargestRectangle();
+      var expected = [0, 0, 300, 400];
+      proclaim.deepEqual(expected, actual);
+    });
+
+    it('retuns correct rectangle when ratio is set', function() {
+      this.instance.original.style.width = '700px';
+      this.instance.original.style.height = '400px';
+      this.instance.options.ratio = [5, 3];
+
+      var actual = this.instance.calculateLargestRectangle();
+      var expected = [17, 0, 666, 400];
+      proclaim.deepEqual(expected, actual);
+    });
+  });
 });
