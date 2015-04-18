@@ -1,4 +1,6 @@
-# Image-Shave
+# Image-Shaver
+
+[![Build Status](https://travis-ci.org/soonick/image-shaver.svg?branch=master)](https://travis-ci.org/soonick/image-shaver)
 
 JS library that you can use to crop images in the browser
 

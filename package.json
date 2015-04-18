@@ -1,8 +1,8 @@
 {
-  "name": "img-shave",
+  "name": "image-shaver",
   "version": "0.0.1",
   "description": "Crop images from the browser",
-  "repository": "https://github.com/soonick/img-shave",
+  "repository": "https://github.com/soonick/image-shaver",
   "author": "Adrian Ancona Novelo<soonick5@yahoo.com.mx",
   "scripts": {
     "test": "./node_modules/gulp/bin/gulp.js health"
