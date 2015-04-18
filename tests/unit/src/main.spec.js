@@ -103,6 +103,7 @@ describe('imageShaver', function() {
       document.body.appendChild(this.instance.original);
 
       sinon.stub(this.instance.originalCtx, 'drawImage');
+      sinon.stub(this.instance, 'showCropRectangle');
     });
 
     afterEach(function() {
@@ -110,6 +111,7 @@ describe('imageShaver', function() {
       delete this.instance.hiddenImage;
       document.body.removeChild(this.instance.original);
       this.instance.originalCtx.restore();
+      this.instance.showCropRectangle.restore();
     });
 
     it('does not increase size of original image', function(done) {
@@ -229,6 +231,17 @@ describe('imageShaver', function() {
 
       var actual = this.instance.calculateLargestRectangle();
       var expected = [17, 0, 666, 400];
+      proclaim.deepEqual(expected, actual);
+    });
+
+    it('retuns correct rectangle when ratio is set to 2:1 and there is a border', function() {
+      this.instance.original.style.width = '600px';
+      this.instance.original.style.height = '300px';
+      this.instance.original.style.border = '1px solid #f00';
+      this.instance.options.ratio = [2, 1];
+
+      var actual = this.instance.calculateLargestRectangle();
+      var expected = [0, 0, 600, 300];
       proclaim.deepEqual(expected, actual);
     });
   });

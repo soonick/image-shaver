@@ -32,8 +32,8 @@ ImageShaver.prototype.createDom = function() {
 
   // For canvas to correctly resize its contents you have to use width and
   // height attributes to specify its height
-  this.original.setAttribute('height', this.original.offsetHeight);
-  this.original.setAttribute('width', this.original.offsetWidth);
+  this.original.setAttribute('height', this.original.clientHeight);
+  this.original.setAttribute('width', this.original.clientWidth);
 };
 
 /**
@@ -56,10 +56,10 @@ ImageShaver.prototype.showOriginalImage = function() {
  * Draws hiddenImage on canvas
  */
 ImageShaver.prototype.drawHiddenImage = function() {
-  var imgWidth = this.hiddenImage.offsetWidth;
-  var imgHeight = this.hiddenImage.offsetHeight;
-  var originalWidth = this.original.offsetWidth;
-  var originalHeight = this.original.offsetHeight;
+  var imgWidth = this.hiddenImage.clientWidth;
+  var imgHeight = this.hiddenImage.clientHeight;
+  var originalWidth = this.original.clientWidth;
+  var originalHeight = this.original.clientHeight;
 
   if (imgWidth > originalWidth || imgHeight > originalHeight) {
     // Shrink
@@ -77,6 +77,7 @@ ImageShaver.prototype.drawHiddenImage = function() {
   var top = parseInt((originalHeight - imgHeight) / 2);
 
   this.originalCtx.drawImage(this.hiddenImage, left, top, imgWidth, imgHeight);
+  this.showCropRectangle();
 };
 
 /**
@@ -87,21 +88,19 @@ ImageShaver.prototype.drawHiddenImage = function() {
  */
 ImageShaver.prototype.calculateLargestRectangle = function() {
   var ratio = this.options.ratio[0] / this.options.ratio[1];
-  var originalRatio = this.original.offsetWidth / this.original.offsetHeight;
-  var height = this.original.offsetHeight;
-  var width = this.original.offsetWidth;
+  var height = this.original.clientHeight;
+  var width = this.original.clientWidth;
+  var originalRatio = width / height;
   var left = 0;
   var top = 0;
 
   if (ratio !== originalRatio) {
     if (ratio > originalRatio) {
-      width = this.original.offsetWidth;
       height = parseInt(width * ratio, 10);
-      top = (this.original.offsetHeight - height) / 2;
+      top = (this.original.clientHeight - height) / 2;
     } else {
-      height = this.original.offsetHeight;
       width = parseInt(height * ratio, 10);
-      left = (this.original.offsetWidth - width) / 2;
+      left = (this.original.clientWidth - width) / 2;
     }
   }
 
@@ -112,7 +111,8 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
  * Shows crop rectangle on top of the original image. Crop rectangle will always
  * have the same ratio, but the user can move it around and resize it
  */
-this.showCropRectangle = function() {
+ImageShaver.prototype.showCropRectangle = function() {
   var rect = this.calculateLargestRectangle();
-  this.originalCtx.rect.apply(null, rect);
+  this.originalCtx.rect(rect[0], rect[1], rect[2], rect[3]);
+  this.originalCtx.stroke();
 };
