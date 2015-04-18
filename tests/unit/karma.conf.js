@@ -1,10 +1,11 @@
 module.exports = function(config) {
   config.set({
     basePath: '../..',
-    frameworks: ['mocha', 'proclaim'],
+    frameworks: ['mocha', 'proclaim', 'sinon'],
     files: [
       'tests/unit/src/**/*.spec.js',
       'src/**/*.js',
+      'tests/unit/fixtures/js/*.js',
       {pattern: 'tests/unit/fixtures/img/*.png', included: false, served: true}
     ],
     reporters: ['progress'],

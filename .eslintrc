@@ -24,6 +24,7 @@
   },
   "globals": {
     "ImageShaver": true,
-    "proclaim": false
+    "proclaim": false,
+    "sinon": false
   }
 }

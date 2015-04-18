@@ -49,15 +49,34 @@ ImageShaver.prototype.showOriginalImage = function() {
   image.className = 'shaver-hidden-image';
   this.container.appendChild(image);
   this.hiddenImage = image;
-  this.drawHiddenImage();
+  image.onload = this.drawHiddenImage.bind(this);
 };
 
 /**
  * Draws hiddenImage on canvas
  */
 ImageShaver.prototype.drawHiddenImage = function() {
-  this.originalCtx.drawImage(this.hiddenImage, 0, 0, this.original.offsetWidth,
-      this.original.offsetHeight);
+  var imgWidth = this.hiddenImage.offsetWidth;
+  var imgHeight = this.hiddenImage.offsetHeight;
+  var originalWidth = this.original.offsetWidth;
+  var originalHeight = this.original.offsetHeight;
+
+  if (imgWidth > originalWidth || imgHeight > originalHeight) {
+    // Shrink
+    var widthRatio = imgWidth / originalWidth;
+    var heightRatio = imgHeight / originalHeight;
+    if (widthRatio > heightRatio) {
+      imgWidth = parseInt(imgWidth / widthRatio, 10);
+      imgHeight = parseInt(imgHeight / widthRatio, 10);
+    } else {
+      imgWidth = parseInt(imgWidth / heightRatio, 10);
+      imgHeight = parseInt(imgHeight / heightRatio, 10);
+    }
+  }
+  var left = parseInt((originalWidth - imgWidth) / 2);
+  var top = parseInt((originalHeight - imgHeight) / 2);
+
+  this.originalCtx.drawImage(this.hiddenImage, left, top, imgWidth, imgHeight);
 };
 
 /**

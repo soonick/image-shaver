@@ -48,6 +48,14 @@ describe('imageShaver', function() {
   });
 
   describe('showOriginalImage', function() {
+    beforeEach(function() {
+      sinon.stub(this.instance, 'drawHiddenImage');
+    });
+
+    afterEach(function() {
+      this.instance.drawHiddenImage.restore();
+    });
+
     it('does not try to load image if no url was given', function() {
       delete this.instance.options.image;
       this.instance.showOriginalImage();
@@ -74,6 +82,102 @@ describe('imageShaver', function() {
         this.instance.options.image,
         this.instance.hiddenImage.getAttribute('src')
       );
+    });
+
+    it('calls drawHiddenImage when image is loaded', function() {
+      this.instance.options.image = '/base/tests/unit/fixtures/img/img.png';
+      this.instance.showOriginalImage();
+
+      this.instance.hiddenImage.onload();
+      proclaim.equal(true, this.instance.drawHiddenImage.called);
+    });
+  });
+
+  describe('drawHiddenImage', function() {
+    beforeEach(function() {
+      var hiddenImage = document.createElement('IMG');
+      hiddenImage.setAttribute('src', '/base/tests/unit/fixtures/img/img.png');
+      document.body.appendChild(hiddenImage);
+      this.instance.hiddenImage = hiddenImage;
+      this.instance.original = document.createElement('CANVAS');
+      document.body.appendChild(this.instance.original);
+
+      sinon.stub(this.instance.originalCtx, 'drawImage');
+    });
+
+    afterEach(function() {
+      document.body.removeChild(this.instance.hiddenImage);
+      delete this.instance.hiddenImage;
+      document.body.removeChild(this.instance.original);
+      this.instance.originalCtx.restore();
+    });
+
+    it('does not increase size of original image', function(done) {
+      var self = this;
+      this.instance.original.style.width = '30px';
+      this.instance.original.style.height = '20px';
+
+      this.instance.hiddenImage.onload = function() {
+        self.instance.drawHiddenImage();
+
+        var expected = [self.instance.hiddenImage, 10, 5, 10, 10];
+        proclaim.deepEqual(
+          expected,
+          self.instance.originalCtx.drawImage.args[0]
+        );
+        done();
+      };
+    });
+
+    it('resizes image to fit container', function(done) {
+      var self = this;
+      this.instance.original.style.width = '7px';
+      this.instance.original.style.height = '7px';
+
+      this.instance.hiddenImage.onload = function() {
+        self.instance.drawHiddenImage();
+
+        var expected = [self.instance.hiddenImage, 0, 0, 7, 7];
+        proclaim.deepEqual(
+          expected,
+          self.instance.originalCtx.drawImage.args[0]
+        );
+        done();
+      };
+    });
+
+    it('resizes and positions correctly when width is smaller', function(done) {
+      var self = this;
+      this.instance.original.style.width = '5px';
+      this.instance.original.style.height = '10px';
+
+      this.instance.hiddenImage.onload = function() {
+        self.instance.drawHiddenImage();
+
+        var expected = [self.instance.hiddenImage, 0, 2, 5, 5];
+        proclaim.deepEqual(
+          expected,
+          self.instance.originalCtx.drawImage.args[0]
+        );
+        done();
+      };
+    });
+
+    it('resizes and positions correctly when height is smaller', function(done) {
+      var self = this;
+      this.instance.original.style.width = '15px';
+      this.instance.original.style.height = '4px';
+
+      this.instance.hiddenImage.onload = function() {
+        self.instance.drawHiddenImage();
+
+        var expected = [self.instance.hiddenImage, 5, 0, 4, 4];
+        proclaim.deepEqual(
+          expected,
+          self.instance.originalCtx.drawImage.args[0]
+        );
+        done();
+      };
     });
   });
 
