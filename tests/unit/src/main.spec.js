@@ -244,5 +244,48 @@ describe('imageShaver', function() {
       var expected = [0, 0, 600, 300];
       proclaim.deepEqual(expected, actual);
     });
+
+    it('returns correct rectangle when original taller than ratio', function() {
+      this.instance.original.style.width = '400px';
+      this.instance.original.style.height = '300px';
+      this.instance.options.ratio = [2, 1];
+
+      var actual = this.instance.calculateLargestRectangle();
+      var expected = [0, 50, 400, 200];
+      proclaim.deepEqual(expected, actual);
+    });
+  });
+
+  describe('showResizeNodes', function() {
+    beforeEach(function() {
+      this.sb = sinon.sandbox.create();
+      this.sb.stub(this.instance.originalCtx, 'rect');
+      this.sb.stub(this.instance.originalCtx, 'fillRect');
+      this.sb.stub(this.instance.originalCtx, 'strokeRect');
+    });
+
+    afterEach(function() {
+      this.sb.restore();
+    });
+
+    it('paints nodes on corners', function() {
+      this.instance.NODE_SIZE = 10;
+      var rect = [30, 40, 100, 110];
+      this.instance.showResizeNodes(rect);
+
+      var topLeft = [25, 35, 10, 10];
+      var topRight = [125, 35, 10, 10];
+      var bottomRight = [125, 145, 10, 10];
+      var bottomLeft = [25, 145, 10, 10];
+      proclaim.deepEqual(topLeft, this.instance.originalCtx.rect.args[0]);
+      proclaim.deepEqual(topLeft, this.instance.originalCtx.fillRect.args[0]);
+      proclaim.deepEqual(topRight, this.instance.originalCtx.rect.args[1]);
+      proclaim.deepEqual(topRight, this.instance.originalCtx.fillRect.args[1]);
+      proclaim.deepEqual(bottomRight, this.instance.originalCtx.rect.args[2]);
+      proclaim.deepEqual(bottomRight,
+          this.instance.originalCtx.fillRect.args[2]);
+      proclaim.deepEqual(bottomLeft, this.instance.originalCtx.rect.args[3]);
+      proclaim.deepEqual(bottomLeft, this.instance.originalCtx.fillRect.args[3]);
+    });
   });
 });

@@ -17,6 +17,13 @@ var ImageShaver = function(container, options) {
 };
 
 /**
+ * Size of the resize nodes that will be shown in the corners of the crop
+ * rectangle
+ * @type {number}
+ */
+ImageShaver.prototype.NODE_SIZE = 8;
+
+/**
  * Destroys the contents of the shaver container and creates it again
  */
 ImageShaver.prototype.createDom = function() {
@@ -96,7 +103,7 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
 
   if (ratio !== originalRatio) {
     if (ratio > originalRatio) {
-      height = parseInt(width * ratio, 10);
+      height = parseInt(width / ratio, 10);
       top = (this.original.clientHeight - height) / 2;
     } else {
       width = parseInt(height * ratio, 10);
@@ -114,5 +121,66 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
 ImageShaver.prototype.showCropRectangle = function() {
   var rect = this.calculateLargestRectangle();
   this.originalCtx.rect(rect[0], rect[1], rect[2], rect[3]);
+  this.originalCtx.stroke();
+  this.showResizeNodes(rect);
+};
+
+/**
+ * Shows nodes at the corners of the crop rectangle that the user can use to
+ * resize the crop box
+ * @param {array} rect - Array containing 4 items: x coordinate, y coordinate,
+ *        width and height of the resulting rectangle.
+ */
+ImageShaver.prototype.showResizeNodes = function(rect) {
+  var nodeDiff = parseInt(this.NODE_SIZE / 2, 10);
+  this.originalCtx.rect(
+    rect[0] - nodeDiff,
+    rect[1] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.fillRect(
+    rect[0] - nodeDiff,
+    rect[1] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.rect(
+    rect[0] + rect[2] - nodeDiff,
+    rect[1] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.fillRect(
+    rect[0] + rect[2] - nodeDiff,
+    rect[1] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.rect(
+    rect[0] + rect[2] - nodeDiff,
+    rect[1] + rect[3] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.fillRect(
+    rect[0] + rect[2] - nodeDiff,
+    rect[1] + rect[3] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.rect(
+    rect[0] - nodeDiff,
+    rect[1] + rect[3] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+  this.originalCtx.fillRect(
+    rect[0] - nodeDiff,
+    rect[1] + rect[3] - nodeDiff,
+    this.NODE_SIZE,
+    this.NODE_SIZE
+  );
+
   this.originalCtx.stroke();
 };
