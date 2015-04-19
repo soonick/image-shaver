@@ -10,6 +10,13 @@
  */
 var ImageShaver = function(container, options) {
   this.options = options || {};
+  /**
+   * Holds the nodes the user can use to resize the crop area. Each node is
+   * represented by an array [left, top, width, height]. The nodes are in the
+   * following order: topLeft, topRight, bottomRight, bottomLeft
+   * @type {array}
+   */
+  this.resizeNodes = [];
 
   this.container = container;
   this.createDom();
@@ -132,55 +139,24 @@ ImageShaver.prototype.showCropRectangle = function() {
  *        width and height of the resulting rectangle.
  */
 ImageShaver.prototype.showResizeNodes = function(rect) {
-  var nodeDiff = parseInt(this.NODE_SIZE / 2, 10);
-  this.originalCtx.rect(
-    rect[0] - nodeDiff,
-    rect[1] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.fillRect(
-    rect[0] - nodeDiff,
-    rect[1] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.rect(
-    rect[0] + rect[2] - nodeDiff,
-    rect[1] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.fillRect(
-    rect[0] + rect[2] - nodeDiff,
-    rect[1] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.rect(
-    rect[0] + rect[2] - nodeDiff,
-    rect[1] + rect[3] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.fillRect(
-    rect[0] + rect[2] - nodeDiff,
-    rect[1] + rect[3] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.rect(
-    rect[0] - nodeDiff,
-    rect[1] + rect[3] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
-  this.originalCtx.fillRect(
-    rect[0] - nodeDiff,
-    rect[1] + rect[3] - nodeDiff,
-    this.NODE_SIZE,
-    this.NODE_SIZE
-  );
+  var ns = this.NODE_SIZE;
+  var nodeDiff = parseInt(ns / 2, 10);
+  var rn = [
+    [rect[0] - nodeDiff, rect[1] - nodeDiff, ns, ns],
+    [rect[0] + rect[2] - nodeDiff, rect[1] - nodeDiff, ns, ns],
+    [rect[0] + rect[2] - nodeDiff, rect[1] + rect[3] - nodeDiff, ns, ns],
+    [rect[0] - nodeDiff, rect[1] + rect[3] - nodeDiff, ns, ns]
+  ];
+  this.resizeNodes = rn;
+
+  this.originalCtx.rect(rn[0][0], rn[0][1], rn[0][2], rn[0][3]);
+  this.originalCtx.fillRect(rn[0][0], rn[0][1], rn[0][2], rn[0][3]);
+  this.originalCtx.rect(rn[1][0], rn[1][1], rn[1][2], rn[1][3]);
+  this.originalCtx.fillRect(rn[1][0], rn[1][1], rn[1][2], rn[1][3]);
+  this.originalCtx.rect(rn[2][0], rn[2][1], rn[2][2], rn[2][3]);
+  this.originalCtx.fillRect(rn[2][0], rn[2][1], rn[2][2], rn[2][3]);
+  this.originalCtx.rect(rn[3][0], rn[3][1], rn[3][2], rn[3][3]);
+  this.originalCtx.fillRect(rn[3][0], rn[3][1], rn[3][2], rn[3][3]);
 
   this.originalCtx.stroke();
 };

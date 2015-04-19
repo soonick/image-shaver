@@ -287,5 +287,19 @@ describe('imageShaver', function() {
       proclaim.deepEqual(bottomLeft, this.instance.originalCtx.rect.args[3]);
       proclaim.deepEqual(bottomLeft, this.instance.originalCtx.fillRect.args[3]);
     });
+
+    it('saves node positions', function() {
+      this.instance.NODE_SIZE = 10;
+      var rect = [30, 40, 100, 110];
+      this.instance.showResizeNodes(rect);
+
+      var expected = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      proclaim.deepEqual(expected, this.instance.resizeNodes);
+    });
   });
 });
