@@ -197,6 +197,27 @@ ImageShaver.prototype.attachNodeListeners = function() {
     'mousemove',
     this.highlightHoveredNode.bind(this)
   );
+  this.original.addEventListener(
+    'mousedown',
+    this.activateResizeMode.bind(this)
+  );
+};
+
+/**
+ * Returns a node if the given event was triggered on top of a node
+ * @param {obejct} e - mouse event
+ * @returns {array} node - Either an array representing a node, or undefined
+ */
+ImageShaver.prototype.isEventOnNode = function(e) {
+  var node;
+
+  for (var i = 0; i < this.resizeNodes.length; i++) {
+    node = this.resizeNodes[i];
+    if (e.offsetX >= node[0] && e.offsetX <= (node[0] + node[2]) &&
+        e.offsetY >= node[1] && e.offsetY <= (node[1] + node[3])) {
+      return node;
+    }
+  }
 };
 
 /**
@@ -205,21 +226,17 @@ ImageShaver.prototype.attachNodeListeners = function() {
  * @param {obejct} e - event from mouseon
  */
 ImageShaver.prototype.highlightHoveredNode = function(e) {
-  var node;
-  for (var i = 0; i < this.resizeNodes.length; i++) {
-    node = this.resizeNodes[i];
-    if (e.offsetX >= node[0] && e.offsetX <= (node[0] + node[2]) &&
-        e.offsetY >= node[1] && e.offsetY <= (node[1] + node[3])) {
-      this.originalCtx.fillRect(
-        node[0] - parseInt(this.NODE_INCREASE / 2, 10),
-        node[1] - parseInt(this.NODE_INCREASE / 2, 10),
-        node[2] + this.NODE_INCREASE,
-        node[3] + this.NODE_INCREASE
-      );
-      this.nodeHovered = true;
-      this.original.classList.add(this.NODE_HOVERED_CLASS);
-      return;
-    }
+  var node = this.isEventOnNode(e);
+  if (node) {
+    this.originalCtx.fillRect(
+      node[0] - parseInt(this.NODE_INCREASE / 2, 10),
+      node[1] - parseInt(this.NODE_INCREASE / 2, 10),
+      node[2] + this.NODE_INCREASE,
+      node[3] + this.NODE_INCREASE
+    );
+    this.nodeHovered = true;
+    this.original.classList.add(this.NODE_HOVERED_CLASS);
+    return;
   }
 
   if (this.nodeHovered) {
@@ -228,4 +245,35 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
     this.originalCtx.clearRect(0, 0, this.original.width, this.original.height);
     this.drawHiddenImage();
   }
+};
+
+/**
+ * Handles crop area resize using the resize nodes
+ * @param {object} e - mousedown event
+ */
+ImageShaver.prototype.activateResizeMode = function(e) {
+  if (this.isEventOnNode(e)) {
+    this.mouseMoveListener = this.resizeCropArea.bind(this);
+    this.mouseOutListener = this.deactivateResizeMode.bind(this);
+    this.mouseUpListener = this.deactivateResizeMode.bind(this);
+    this.original.addEventListener('mousemove', this.mouseMoveListener);
+    this.original.addEventListener('mouseout', this.mouseOutListener);
+    this.original.addEventListener('mouseup', this.mouseUpListener);
+  }
+};
+
+/**
+ * Removes listeners that were set when mousedown was triggered on a node
+ */
+ImageShaver.prototype.deactivateResizeMode = function() {
+  this.original.removeEventListener('mousemove', this.mouseMoveListener);
+  this.original.removeEventListener('mouseout', this.mouseOutListener);
+  this.original.removeEventListener('mouseup', this.mouseUpListener);
+};
+
+/**
+ * Resizes the rectangle that represents the crop area
+ */
+ImageShaver.prototype.resizeCropArea = function() {
+
 };
