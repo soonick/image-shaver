@@ -18,6 +18,12 @@ var ImageShaver = function(container, options) {
    */
   this.resizeNodes = [];
 
+  /**
+   * Flag that tells us if a resize node is currently hovered
+   * @type {boolean}
+   */
+  this.nodeHovered = false;
+
   this.container = container;
   this.createDom();
   this.showOriginalImage();
@@ -29,6 +35,19 @@ var ImageShaver = function(container, options) {
  * @type {number}
  */
 ImageShaver.prototype.NODE_SIZE = 8;
+
+/**
+ * How much bigger will the hovered node be compared to the unhovered node. This
+ * value is in pixels.
+ * @type {number}
+ */
+ImageShaver.prototype.NODE_INCREASE = 6;
+
+/**
+ * Class we will add to the canvas to know when a node is hovered
+ * @type {string}
+ */
+ImageShaver.prototype.NODE_HOVERED_CLASS = 'shaver-node-hovered';
 
 /**
  * Destroys the contents of the shaver container and creates it again
@@ -48,6 +67,8 @@ ImageShaver.prototype.createDom = function() {
   // height attributes to specify its height
   this.original.setAttribute('height', this.original.clientHeight);
   this.original.setAttribute('width', this.original.clientWidth);
+
+  this.addListeners();
 };
 
 /**
@@ -159,4 +180,52 @@ ImageShaver.prototype.showResizeNodes = function(rect) {
   this.originalCtx.fillRect(rn[3][0], rn[3][1], rn[3][2], rn[3][3]);
 
   this.originalCtx.stroke();
+};
+
+/**
+ * Add different event listeners to canvas so you can interact with it
+ */
+ImageShaver.prototype.addListeners = function() {
+  this.attachNodeListeners();
+};
+
+/**
+ * Add listeners to resize nodes so the user can move them around
+ */
+ImageShaver.prototype.attachNodeListeners = function() {
+  this.original.addEventListener(
+    'mousemove',
+    this.highlightHoveredNode.bind(this)
+  );
+};
+
+/**
+ * If mouse is over a resize node, it increases the size of the node and changes
+ * mouse cursor
+ * @param {obejct} e - event from mouseon
+ */
+ImageShaver.prototype.highlightHoveredNode = function(e) {
+  var node;
+  for (var i = 0; i < this.resizeNodes.length; i++) {
+    node = this.resizeNodes[i];
+    if (e.offsetX >= node[0] && e.offsetX <= (node[0] + node[2]) &&
+        e.offsetY >= node[1] && e.offsetY <= (node[1] + node[3])) {
+      this.originalCtx.fillRect(
+        node[0] - parseInt(this.NODE_INCREASE / 2, 10),
+        node[1] - parseInt(this.NODE_INCREASE / 2, 10),
+        node[2] + this.NODE_INCREASE,
+        node[3] + this.NODE_INCREASE
+      );
+      this.nodeHovered = true;
+      this.original.classList.add(this.NODE_HOVERED_CLASS);
+      return;
+    }
+  }
+
+  if (this.nodeHovered) {
+    this.nodeHovered = false;
+    this.original.classList.remove(this.NODE_HOVERED_CLASS);
+    this.originalCtx.clearRect(0, 0, this.original.width, this.original.height);
+    this.drawHiddenImage();
+  }
 };

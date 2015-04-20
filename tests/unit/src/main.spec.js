@@ -302,4 +302,171 @@ describe('imageShaver', function() {
       proclaim.deepEqual(expected, this.instance.resizeNodes);
     });
   });
+
+  describe('highlightHoveredNode', function() {
+    beforeEach(function() {
+      this.sb = sinon.sandbox.create();
+      this.sb.stub(this.instance.originalCtx, 'fillRect');
+      this.sb.stub(this.instance.originalCtx, 'clearRect');
+      this.sb.stub(this.instance, 'drawHiddenImage');
+      this.instance.NODE_INCREASE = 10;
+      this.instance.nodeHovered = false;
+      this.instance.original = document.createElement('CANVAS');
+      document.body.appendChild(this.instance.original);
+      this.instance.original.style.width = '100px';
+      this.instance.original.width = '100';
+      this.instance.original.style.height = '80px';
+      this.instance.original.height = '80';
+    });
+
+    afterEach(function() {
+      this.sb.restore();
+      document.body.removeChild(this.instance.original);
+    });
+
+    it('does not draw rectangle if node not highlighted', function() {
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 100,
+        offsetY: 50
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+      proclaim.isFalse(this.instance.originalCtx.fillRect.called);
+    });
+
+    it('draws bigger node if a node is highlighted', function() {
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 35,
+        offsetY: 45
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      var expected = [20, 30, 20, 20];
+      proclaim.deepEqual(expected, this.instance.originalCtx.fillRect.args[0]);
+    });
+
+    it('sets nodeHovered flag to true if node is hovered', function() {
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 35,
+        offsetY: 45
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      proclaim.isTrue(this.instance.nodeHovered);
+    });
+
+    it('sets nodeHovered flag back to false after moving mouse out of node', function() {
+      this.instance.nodeHovered = true;
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 36,
+        offsetY: 45
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      proclaim.isFalse(this.instance.nodeHovered);
+    });
+
+    it('redraws canvas after moving mouse out of node', function() {
+      this.instance.nodeHovered = true;
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 36,
+        offsetY: 45
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      var expected = [0, 0, 100, 80];
+      proclaim.deepEqual(expected, this.instance.originalCtx.clearRect.args[0]);
+      proclaim.isTrue(this.instance.drawHiddenImage.called);
+    });
+
+    it('does not set nodeHovered flag to false if moving inside node', function() {
+      this.instance.nodeHovered = true;
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 30,
+        offsetY: 40
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      proclaim.isTrue(this.instance.nodeHovered);
+    });
+
+    it('adds class to original when node is hovered', function() {
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 30,
+        offsetY: 40
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      var expected = 'shaver-node-hovered';
+      proclaim.isTrue(this.instance.original.classList.contains(expected));
+    });
+
+    it('removes hover class to original when node hovered is lost', function() {
+      var hoverClass = 'shaver-node-hovered';
+      this.instance.nodeHovered = true;
+      this.instance.original.classList.add(hoverClass);
+      this.instance.resizeNodes = [
+        [25, 35, 10, 10],
+        [125, 35, 10, 10],
+        [125, 145, 10, 10],
+        [25, 145, 10, 10]
+      ];
+      var mockEvent = {
+        offsetX: 36,
+        offsetY: 40
+      };
+
+      this.instance.highlightHoveredNode(mockEvent);
+
+      proclaim.isFalse(this.instance.original.classList.contains(hoverClass));
+    });
+  });
 });
