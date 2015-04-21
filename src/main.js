@@ -31,6 +31,13 @@ var ImageShaver = function(container, options) {
   this.resizeNode = null;
 
   /**
+   * Index of the node that is being used to resize. 0 = top-left, 1: top-right,
+   * 2: bottom-right, 3: bottom-left
+   * @type {number}
+   */
+  this.resizeNodeIndex = null;
+
+  /**
    * Array that represents the current state of the cropping rectangle.
    * [left, top, width, height]
    * @type {array}
@@ -162,8 +169,10 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
  * have the same ratio, but the user can move it around and resize it
  */
 ImageShaver.prototype.showCropRectangle = function() {
-  var rect = this.calculateLargestRectangle();
-  this.cropRectangle = rect;
+  if (!this.cropRectangle) {
+    this.cropRectangle = this.calculateLargestRectangle();
+  }
+  var rect = this.cropRectangle;
   this.originalCtx.rect(rect[0], rect[1], rect[2], rect[3]);
   this.originalCtx.stroke();
   this.showResizeNodes(rect);
@@ -258,7 +267,7 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
   if (this.nodeHovered) {
     this.nodeHovered = false;
     this.original.classList.remove(this.NODE_HOVERED_CLASS);
-    this.originalCtx.clearRect(0, 0, this.original.width, this.original.height);
+    this.original.width = this.original.width;
     this.drawHiddenImage();
     this.showCropRectangle();
   }
@@ -271,6 +280,7 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
 ImageShaver.prototype.activateResizeMode = function(e) {
   this.resizeNode = this.isEventOnNode(e);
   if (this.resizeNode) {
+    this.resizeNodeIndex = this.resizeNodes.indexOf(this.resizeNode);
     this.mouseMoveListener = this.resizeCropArea.bind(this);
     this.mouseOutListener = this.deactivateResizeMode.bind(this);
     this.mouseUpListener = this.deactivateResizeMode.bind(this);
@@ -287,7 +297,7 @@ ImageShaver.prototype.deactivateResizeMode = function() {
   this.original.removeEventListener('mousemove', this.mouseMoveListener);
   this.original.removeEventListener('mouseout', this.mouseOutListener);
   this.original.removeEventListener('mouseup', this.mouseUpListener);
-  this.resizeNode = false;
+  this.resizeNode = null;
 };
 
 /**
@@ -344,6 +354,16 @@ ImageShaver.prototype.calculateCropRectangleSize = function(corner, newPos) {
 
 /**
  * Resizes the rectangle that represents the crop area
+ * @param {object} e - mouse move event
  */
-ImageShaver.prototype.resizeCropArea = function() {
+ImageShaver.prototype.resizeCropArea = function(e) {
+  var newRect = this.calculateCropRectangleSize(
+    this.resizeNodeIndex,
+    [e.offsetX, e.offsetY]
+  );
+
+  this.original.width = this.original.width;
+  this.drawHiddenImage();
+  this.cropRectangle = newRect;
+  this.showCropRectangle();
 };

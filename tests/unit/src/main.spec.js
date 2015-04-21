@@ -384,16 +384,6 @@ describe('imageShaver', function() {
       proclaim.isFalse(this.instance.nodeHovered);
     });
 
-    it('redraws canvas after moving mouse out of node', function() {
-      this.instance.nodeHovered = true;
-
-      this.instance.highlightHoveredNode({});
-
-      var expected = [0, 0, 100, 80];
-      proclaim.deepEqual(expected, this.instance.originalCtx.clearRect.args[0]);
-      proclaim.isTrue(this.instance.drawHiddenImage.called);
-    });
-
     it('does not set nodeHovered flag to false if moving inside node', function() {
       this.instance.isEventOnNode.returns([25, 35, 10, 10]);
       this.instance.nodeHovered = true;
@@ -446,6 +436,20 @@ describe('imageShaver', function() {
       this.instance.activateResizeMode({});
 
       proclaim.isFalse(this.instance.original.addEventListener.called);
+    });
+
+    it('saves resizeNodeIndex', function() {
+      var node = ['someNode'];
+      this.instance.isEventOnNode.returns(node);
+      this.instance.resizeNodes = [
+        'something',
+        node,
+        'other'
+      ];
+
+      this.instance.activateResizeMode();
+
+      proclaim.equal(1, this.instance.resizeNodeIndex);
     });
   });
 
@@ -530,6 +534,40 @@ describe('imageShaver', function() {
         expected,
         this.instance.calculateCropRectangleSize(3, [70, 500])
       );
+    });
+  });
+
+  describe('showCropRectangle', function() {
+    beforeEach(function() {
+      this.sb = sinon.sandbox.create();
+      this.sb.stub(this.instance.originalCtx);
+      this.sb.stub(this.instance, 'showResizeNodes');
+      this.sb.stub(this.instance, 'calculateLargestRectangle');
+      delete this.instance.cropRectangle;
+    });
+
+    afterEach(function() {
+      this.sb.restore();
+    });
+
+    it('uses this.cropRectangle if it exists', function() {
+      this.instance.cropRectangle = [20, 40, 130, 120];
+
+      this.instance.showCropRectangle();
+
+      proclaim.deepEqual(
+        this.instance.originalCtx.rect.args[0],
+        this.instance.cropRectangle
+      );
+    });
+
+    it('calculates largest rectangle if this.cropRectangle does not exist', function() {
+      var expected = [20, 40, 130, 120];
+      this.instance.calculateLargestRectangle.returns(expected);
+
+      this.instance.showCropRectangle();
+
+      proclaim.deepEqual(this.instance.originalCtx.rect.args[0], expected);
     });
   });
 });
