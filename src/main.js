@@ -70,6 +70,12 @@ ImageShaver.prototype.NODE_INCREASE = 6;
 ImageShaver.prototype.NODE_HOVERED_CLASS = 'shaver-node-hovered';
 
 /**
+ * Class we will add to the canvas when crop area is hovered
+ * @type {string}
+ */
+ImageShaver.prototype.CROP_HOVERED_CLASS = 'shaver-crop-hovered';
+
+/**
  * Destroys the contents of the shaver container and creates it again
  */
 ImageShaver.prototype.createDom = function() {
@@ -211,21 +217,50 @@ ImageShaver.prototype.showResizeNodes = function(rect) {
  * Add different event listeners to canvas so you can interact with it
  */
 ImageShaver.prototype.addListeners = function() {
-  this.attachNodeListeners();
-};
-
-/**
- * Add listeners to resize nodes so the user can move them around
- */
-ImageShaver.prototype.attachNodeListeners = function() {
   this.original.addEventListener(
     'mousemove',
-    this.highlightHoveredNode.bind(this)
+    this.handleMouseMove.bind(this)
   );
   this.original.addEventListener(
     'mousedown',
-    this.activateResizeMode.bind(this)
+    this.activateMoveOrResizeMode.bind(this)
   );
+};
+
+/**
+ * Handle mouse move
+ * @param {object} e - event from mouse
+ */
+ImageShaver.prototype.handleMouseMove = function(e) {
+  this.addCropAreaMoveClass(e);
+  this.highlightHoveredNode(e);
+};
+
+/**
+ * If mouse is over crop area add class to canvas
+ * @param {object} e - mouse event
+ */
+ImageShaver.prototype.addCropAreaMoveClass = function(e) {
+  if (this.isEventOnRectangle(e, this.cropRectangle)) {
+    this.original.classList.add(this.CROP_HOVERED_CLASS);
+  } else {
+    this.original.classList.remove(this.CROP_HOVERED_CLASS);
+  }
+};
+
+/**
+ * Returns true if the given event was triggered on the given rectangle
+ * @param {object} e - mouse event
+ * @param {array} rect - [left, top, width, height]
+ * @returns {boolean} true if event happened inside rectangle
+ */
+ImageShaver.prototype.isEventOnRectangle = function(e, rect) {
+  if (e.offsetX >= rect[0] && e.offsetX <= (rect[0] + rect[2]) &&
+      e.offsetY >= rect[1] && e.offsetY <= (rect[1] + rect[3])) {
+    return true;
+  } else {
+    return false;
+  }
 };
 
 /**
@@ -234,13 +269,9 @@ ImageShaver.prototype.attachNodeListeners = function() {
  * @returns {array} node - Either an array representing a node, or undefined
  */
 ImageShaver.prototype.isEventOnNode = function(e) {
-  var node;
-
   for (var i = 0; i < this.resizeNodes.length; i++) {
-    node = this.resizeNodes[i];
-    if (e.offsetX >= node[0] && e.offsetX <= (node[0] + node[2]) &&
-        e.offsetY >= node[1] && e.offsetY <= (node[1] + node[3])) {
-      return node;
+    if (this.isEventOnRectangle(e, this.resizeNodes[i])) {
+      return this.resizeNodes[i];
     }
   }
 };
@@ -274,30 +305,57 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
 };
 
 /**
- * Handles crop area resize using the resize nodes
+ * Activates move or resize mode depending on where the mousedown event was
+ * triggered
  * @param {object} e - mousedown event
  */
-ImageShaver.prototype.activateResizeMode = function(e) {
+ImageShaver.prototype.activateMoveOrResizeMode = function(e) {
+  var activated = false;
   this.resizeNode = this.isEventOnNode(e);
   if (this.resizeNode) {
+    activated = true;
     this.resizeNodeIndex = this.resizeNodes.indexOf(this.resizeNode);
     this.mouseMoveListener = this.resizeCropArea.bind(this);
-    this.mouseOutListener = this.deactivateResizeMode.bind(this);
-    this.mouseUpListener = this.deactivateResizeMode.bind(this);
+  } else if (this.isEventOnRectangle(e, this.cropRectangle)) {
+    activated = true;
+    this.previousPosition = [e.offsetX, e.offsetY];
+    this.mouseMoveListener = this.moveCropArea.bind(this);
+  }
+
+  if (activated) {
+    this.mouseOutListener = this.deactivateMoveOrResizeMode.bind(this);
+    this.mouseUpListener = this.deactivateMoveOrResizeMode.bind(this);
     this.original.addEventListener('mousemove', this.mouseMoveListener);
     this.original.addEventListener('mouseout', this.mouseOutListener);
     this.original.addEventListener('mouseup', this.mouseUpListener);
   }
 };
 
+ImageShaver.prototype.moveCropArea = function(e) {
+  var newRect = [
+    this.cropRectangle[0] - (this.previousPosition[0] - e.offsetX),
+    this.cropRectangle[1] - (this.previousPosition[1] - e.offsetY),
+    this.cropRectangle[2],
+    this.cropRectangle[3]
+  ];
+  this.previousPosition = [e.offsetX, e.offsetY];
+
+  this.cropRectangle = newRect;
+  this.original.width = this.original.width;
+  this.drawHiddenImage();
+  this.showCropRectangle();
+};
+
 /**
- * Removes listeners that were set when mousedown was triggered on a node
+ * Removes listeners that were set when mousedown was triggered on a node or in
+ * the crop area
  */
-ImageShaver.prototype.deactivateResizeMode = function() {
+ImageShaver.prototype.deactivateMoveOrResizeMode = function() {
   this.original.removeEventListener('mousemove', this.mouseMoveListener);
   this.original.removeEventListener('mouseout', this.mouseOutListener);
   this.original.removeEventListener('mouseup', this.mouseUpListener);
   this.resizeNode = null;
+  this.previousPosition = null;
 };
 
 /**

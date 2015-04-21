@@ -298,36 +298,25 @@ describe('imageShaver', function() {
     });
   });
 
-  describe('isEventOnNode', function() {
-    it('returns undefined if event did not happen on top of a node', function() {
-      this.instance.resizeNodes = [
-        [25, 35, 10, 10],
-        [125, 35, 10, 10],
-        [125, 145, 10, 10],
-        [25, 145, 10, 10]
-      ];
+  describe('isEventOnRectangle', function() {
+    it('returns false if event did not happen on the given rectangle', function() {
+      var rect = [25, 35, 10, 10];
       var mockEvent = {
         offsetX: 100,
         offsetY: 50
       };
 
-      proclaim.isUndefined(this.instance.isEventOnNode(mockEvent));
+      proclaim.isFalse(this.instance.isEventOnRectangle(mockEvent, rect));
     });
 
     it('returns node if event happened on top of a node', function() {
-      var theNode = [125, 35, 10, 10];
-      this.instance.resizeNodes = [
-        [25, 35, 10, 10],
-        theNode,
-        [125, 145, 10, 10],
-        [25, 145, 10, 10]
-      ];
+      var rect = [125, 35, 10, 10];
       var mockEvent = {
         offsetX: 125,
         offsetY: 36
       };
 
-      proclaim.equal(theNode, this.instance.isEventOnNode(mockEvent));
+      proclaim.isTrue(this.instance.isEventOnRectangle(mockEvent, rect));
     });
   });
 
@@ -413,11 +402,12 @@ describe('imageShaver', function() {
     });
   });
 
-  describe('activateResizeMode', function() {
+  describe('activateMoveOrResizeMode', function() {
     beforeEach(function() {
       this.sb = sinon.sandbox.create();
       this.sb.stub(this.instance.original, 'addEventListener');
       this.sb.stub(this.instance, 'isEventOnNode');
+      this.sb.stub(this.instance, 'isEventOnRectangle');
     });
 
     afterEach(function() {
@@ -427,13 +417,13 @@ describe('imageShaver', function() {
     it('sets event listeners if event was on a node', function() {
       this.instance.isEventOnNode.returns([25, 35, 10, 10]);
 
-      this.instance.activateResizeMode({});
+      this.instance.activateMoveOrResizeMode({});
 
       proclaim.equal(3, this.instance.original.addEventListener.callCount);
     });
 
     it('does not set event listeners if event was not on a node', function() {
-      this.instance.activateResizeMode({});
+      this.instance.activateMoveOrResizeMode({});
 
       proclaim.isFalse(this.instance.original.addEventListener.called);
     });
@@ -447,13 +437,13 @@ describe('imageShaver', function() {
         'other'
       ];
 
-      this.instance.activateResizeMode();
+      this.instance.activateMoveOrResizeMode();
 
       proclaim.equal(1, this.instance.resizeNodeIndex);
     });
   });
 
-  describe('deactivateResizeMode', function() {
+  describe('deactivateMoveOrResizeMode', function() {
     beforeEach(function() {
       sinon.stub(this.instance.original, 'removeEventListener');
     });
@@ -463,7 +453,7 @@ describe('imageShaver', function() {
     });
 
     it('removes all event listeners', function() {
-      this.instance.deactivateResizeMode();
+      this.instance.deactivateMoveOrResizeMode();
 
       proclaim.equal(3, this.instance.original.removeEventListener.callCount);
     });
