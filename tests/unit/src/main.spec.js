@@ -49,11 +49,12 @@ describe('imageShaver', function() {
 
   describe('showOriginalImage', function() {
     beforeEach(function() {
-      sinon.stub(this.instance, 'drawHiddenImage');
+      this.sb = sinon.sandbox.create();
+      this.sb.stub(this.instance, 'drawHiddenImage');
     });
 
     afterEach(function() {
-      this.instance.drawHiddenImage.restore();
+      this.sb.restore();
     });
 
     it('does not try to load image if no url was given', function() {
@@ -65,16 +66,17 @@ describe('imageShaver', function() {
       proclaim.equal(0, hiddenImage.length);
     });
 
-    it('adds hidden image to container', function() {
+    it('adds hidden image to container', function(done) {
       this.instance.options.image = '/base/tests/unit/fixtures/img/img.png';
       this.instance.showOriginalImage();
 
       var hiddenImage =
           this.instance.container.getElementsByClassName('shaver-hidden-image');
       proclaim.equal(1, hiddenImage.length);
+      this.sb.stub(this.instance, 'showCropRectangle', done);
     });
 
-    it('hidden image has correct URL', function() {
+    it('hidden image has correct URL', function(done) {
       this.instance.options.image = '/base/tests/unit/fixtures/img/img.png';
       this.instance.showOriginalImage();
 
@@ -82,14 +84,7 @@ describe('imageShaver', function() {
         this.instance.options.image,
         this.instance.hiddenImage.getAttribute('src')
       );
-    });
-
-    it('calls drawHiddenImage when image is loaded', function() {
-      this.instance.options.image = '/base/tests/unit/fixtures/img/img.png';
-      this.instance.showOriginalImage();
-
-      this.instance.hiddenImage.onload();
-      proclaim.equal(true, this.instance.drawHiddenImage.called);
+      this.sb.stub(this.instance, 'showCropRectangle', done);
     });
   });
 
@@ -342,6 +337,7 @@ describe('imageShaver', function() {
       this.sb.stub(this.instance.originalCtx, 'fillRect');
       this.sb.stub(this.instance.originalCtx, 'clearRect');
       this.sb.stub(this.instance, 'drawHiddenImage');
+      this.sb.stub(this.instance, 'showCropRectangle');
       this.sb.stub(this.instance, 'isEventOnNode');
       this.instance.NODE_INCREASE = 10;
       this.instance.nodeHovered = false;
@@ -466,6 +462,74 @@ describe('imageShaver', function() {
       this.instance.deactivateResizeMode();
 
       proclaim.equal(3, this.instance.original.removeEventListener.callCount);
+    });
+  });
+
+  describe('calculateCropRectangleSize', function() {
+    it('calculates new size when resizing top left corner to the rigth', function() {
+      this.instance.cropRectangle = [20, 50, 300, 100];
+      this.instance.options.ratio = [3, 1];
+
+      var expected = [30, 54, 290, 96];
+      proclaim.deepEqual(
+        expected,
+        this.instance.calculateCropRectangleSize(0, [30, 40])
+      );
+    });
+
+    it('calculates new size when resizing top left corner to the left', function() {
+      this.instance.cropRectangle = [20, 50, 300, 100];
+      this.instance.options.ratio = [3, 1];
+
+      var expected = [10, 47, 310, 103];
+      proclaim.deepEqual(
+        expected,
+        this.instance.calculateCropRectangleSize(0, [10, 60])
+      );
+    });
+
+    it('calculates new size when resizing top left corner ratio is 1, 2', function() {
+      this.instance.cropRectangle = [100, 100, 100, 200];
+      this.instance.options.ratio = [1, 2];
+
+      var expected = [150, 200, 50, 100];
+      proclaim.deepEqual(
+        expected,
+        this.instance.calculateCropRectangleSize(0, [150, 20])
+      );
+    });
+
+    it('calculates new size when resizing top right corner', function() {
+      this.instance.cropRectangle = [20, 50, 300, 100];
+      this.instance.options.ratio = [3, 1];
+
+      var expected = [20, 67, 250, 83];
+      proclaim.deepEqual(
+        expected,
+        this.instance.calculateCropRectangleSize(1, [270, 10])
+      );
+    });
+
+    it('calculates new size when resizing bottom right corner', function() {
+      this.instance.cropRectangle = [20, 50, 300, 100];
+      this.instance.options.ratio = [3, 1];
+
+      var expected = [20, 50, 250, 83];
+      proclaim.deepEqual(
+        expected,
+        this.instance.calculateCropRectangleSize(2, [270, 500])
+      );
+    });
+
+    it('calculates new size when resizing bottom left corner', function() {
+      this.instance.cropRectangle = [20, 50, 300, 100];
+      this.instance.options.ratio = [3, 1];
+
+      var expected = [70, 50, 250, 83];
+      proclaim.deepEqual(
+        expected,
+        this.instance.calculateCropRectangleSize(3, [70, 500])
+      );
     });
   });
 });

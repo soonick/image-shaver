@@ -24,6 +24,19 @@ var ImageShaver = function(container, options) {
    */
   this.nodeHovered = false;
 
+  /**
+   * Node that is being used to resize the crop area
+   * @type {array}
+   */
+  this.resizeNode = null;
+
+  /**
+   * Array that represents the current state of the cropping rectangle.
+   * [left, top, width, height]
+   * @type {array}
+   */
+  this.cropRectangle = null;
+
   this.container = container;
   this.createDom();
   this.showOriginalImage();
@@ -84,7 +97,10 @@ ImageShaver.prototype.showOriginalImage = function() {
   image.className = 'shaver-hidden-image';
   this.container.appendChild(image);
   this.hiddenImage = image;
-  image.onload = this.drawHiddenImage.bind(this);
+  image.onload = function() {
+    this.drawHiddenImage();
+    this.showCropRectangle();
+  }.bind(this);
 };
 
 /**
@@ -112,7 +128,6 @@ ImageShaver.prototype.drawHiddenImage = function() {
   var top = parseInt((originalHeight - imgHeight) / 2);
 
   this.originalCtx.drawImage(this.hiddenImage, left, top, imgWidth, imgHeight);
-  this.showCropRectangle();
 };
 
 /**
@@ -148,6 +163,7 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
  */
 ImageShaver.prototype.showCropRectangle = function() {
   var rect = this.calculateLargestRectangle();
+  this.cropRectangle = rect;
   this.originalCtx.rect(rect[0], rect[1], rect[2], rect[3]);
   this.originalCtx.stroke();
   this.showResizeNodes(rect);
@@ -244,6 +260,7 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
     this.original.classList.remove(this.NODE_HOVERED_CLASS);
     this.originalCtx.clearRect(0, 0, this.original.width, this.original.height);
     this.drawHiddenImage();
+    this.showCropRectangle();
   }
 };
 
@@ -252,7 +269,8 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
  * @param {object} e - mousedown event
  */
 ImageShaver.prototype.activateResizeMode = function(e) {
-  if (this.isEventOnNode(e)) {
+  this.resizeNode = this.isEventOnNode(e);
+  if (this.resizeNode) {
     this.mouseMoveListener = this.resizeCropArea.bind(this);
     this.mouseOutListener = this.deactivateResizeMode.bind(this);
     this.mouseUpListener = this.deactivateResizeMode.bind(this);
@@ -269,11 +287,63 @@ ImageShaver.prototype.deactivateResizeMode = function() {
   this.original.removeEventListener('mousemove', this.mouseMoveListener);
   this.original.removeEventListener('mouseout', this.mouseOutListener);
   this.original.removeEventListener('mouseup', this.mouseUpListener);
+  this.resizeNode = false;
+};
+
+/**
+ * Calculates the new size for the crop rectangle based on the new position for
+ * a given corner.
+ * @param {number} corner - 0 = top-left, 1: top-right, 2: bottom-right,
+ *                  3: bottom-left
+ * @param {array} newPos- Array containing new X and Y for given corner
+ * @returns {array} Array with values for new crop rectangle:
+ *                [left, top, width, height]
+ */
+ImageShaver.prototype.calculateCropRectangleSize = function(corner, newPos) {
+  var ratio = this.options.ratio;
+
+  var leftDif;
+  var newLeft;
+  var newTop;
+  var newWidth;
+  var newHeight;
+
+  switch (corner) {
+    case 0:
+      leftDif = this.cropRectangle[0] - newPos[0];
+      newLeft = newPos[0];
+      newWidth = this.cropRectangle[2] + leftDif;
+      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newTop = this.cropRectangle[1] + (this.cropRectangle[3] - newHeight);
+      break;
+    case 3:
+      leftDif = this.cropRectangle[0] - newPos[0];
+      newLeft = newPos[0];
+      newWidth = this.cropRectangle[2] + leftDif;
+      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newTop = this.cropRectangle[1];
+      break;
+    case 1:
+      leftDif = (this.cropRectangle[0] + this.cropRectangle[2]) - newPos[0];
+      newLeft = this.cropRectangle[0];
+      newWidth = this.cropRectangle[2] - leftDif;
+      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newTop = this.cropRectangle[1] + (this.cropRectangle[3] - newHeight);
+      break;
+    case 2:
+      leftDif = (this.cropRectangle[0] + this.cropRectangle[2]) - newPos[0];
+      newLeft = this.cropRectangle[0];
+      newWidth = this.cropRectangle[2] - leftDif;
+      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newTop = this.cropRectangle[1];
+      break;
+  }
+
+  return [newLeft, newTop, newWidth, newHeight];
 };
 
 /**
  * Resizes the rectangle that represents the crop area
  */
 ImageShaver.prototype.resizeCropArea = function() {
-
 };
