@@ -18,7 +18,7 @@ describe('imageShaver', function() {
       proclaim.equal(2, children.length);
       proclaim.equal('CANVAS', children[0].tagName);
       proclaim.equal('shaver-original', children[0].className);
-      proclaim.equal('DIV', children[1].tagName);
+      proclaim.equal('CANVAS', children[1].tagName);
       proclaim.equal('shaver-preview', children[1].className);
     });
 
@@ -29,21 +29,34 @@ describe('imageShaver', function() {
       var expectedOriginal = c.getElementsByClassName('shaver-original')[0];
       var expectedOriginalCtx = expectedOriginal.getContext('2d');
       var expectedPreview = c.getElementsByClassName('shaver-preview')[0];
+      var expectedPreviewCtx = expectedPreview.getContext('2d');
 
       proclaim.equal(expectedOriginal, this.instance.original);
       proclaim.equal(expectedOriginalCtx, this.instance.originalCtx);
       proclaim.equal(expectedPreview, this.instance.preview);
+      proclaim.equal(expectedPreviewCtx, this.instance.previewCtx);
     });
 
-    it('sets canvas width and height attributes', function() {
+    it('sets original width and height attributes', function() {
       var canvasSize = document.createElement('STYLE');
-      canvasSize.innerHTML = 'canvas { width: 201px; height: 200px}';
+      canvasSize.innerHTML = '.shaver-original { width: 201px; height: 200px}';
       document.body.appendChild(canvasSize);
 
       this.instance.createDom();
 
       proclaim.equal(200, this.instance.original.getAttribute('height'));
       proclaim.equal(201, this.instance.original.getAttribute('width'));
+    });
+
+    it('sets preview width and height attributes', function() {
+      var canvasSize = document.createElement('STYLE');
+      canvasSize.innerHTML = '.shaver-preview { width: 101px; height: 23px}';
+      document.body.appendChild(canvasSize);
+
+      this.instance.createDom();
+
+      proclaim.equal(23, this.instance.preview.getAttribute('height'));
+      proclaim.equal(101, this.instance.preview.getAttribute('width'));
     });
   });
 
@@ -533,6 +546,7 @@ describe('imageShaver', function() {
       this.sb.stub(this.instance.originalCtx);
       this.sb.stub(this.instance, 'showResizeNodes');
       this.sb.stub(this.instance, 'calculateLargestRectangle');
+      this.sb.stub(this.instance, 'updatePreview');
       delete this.instance.cropRectangle;
     });
 

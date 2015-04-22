@@ -81,7 +81,8 @@ ImageShaver.prototype.CROP_HOVERED_CLASS = 'shaver-crop-hovered';
 ImageShaver.prototype.createDom = function() {
   this.original = document.createElement('CANVAS');
   this.originalCtx = this.original.getContext('2d');
-  this.preview = document.createElement('DIV');
+  this.preview = document.createElement('CANVAS');
+  this.previewCtx = this.preview.getContext('2d');
   this.original.className = 'shaver-original';
   this.preview.className = 'shaver-preview';
 
@@ -93,6 +94,8 @@ ImageShaver.prototype.createDom = function() {
   // height attributes to specify its height
   this.original.setAttribute('height', this.original.clientHeight);
   this.original.setAttribute('width', this.original.clientWidth);
+  this.preview.setAttribute('height', this.preview.clientHeight);
+  this.preview.setAttribute('width', this.preview.clientWidth);
 
   this.addListeners();
 };
@@ -171,6 +174,23 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
 };
 
 /**
+ * Updates preview picture with contents inside the crop rectangle
+ */
+ImageShaver.prototype.updatePreview = function() {
+  this.previewCtx.drawImage(
+    this.original,
+    this.cropRectangle[0],
+    this.cropRectangle[1],
+    this.cropRectangle[2],
+    this.cropRectangle[3],
+    0,
+    0,
+    this.preview.width,
+    this.preview.height
+  );
+};
+
+/**
  * Shows crop rectangle on top of the original image. Crop rectangle will always
  * have the same ratio, but the user can move it around and resize it
  */
@@ -179,6 +199,7 @@ ImageShaver.prototype.showCropRectangle = function() {
     this.cropRectangle = this.calculateLargestRectangle();
   }
   var rect = this.cropRectangle;
+  this.updatePreview();
   this.originalCtx.rect(rect[0], rect[1], rect[2], rect[3]);
   this.originalCtx.stroke();
   this.showResizeNodes(rect);
