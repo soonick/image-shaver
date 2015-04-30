@@ -133,15 +133,15 @@ ImageShaver.prototype.drawHiddenImage = function() {
     var widthRatio = imgWidth / originalWidth;
     var heightRatio = imgHeight / originalHeight;
     if (widthRatio > heightRatio) {
-      imgWidth = parseInt(imgWidth / widthRatio, 10);
-      imgHeight = parseInt(imgHeight / widthRatio, 10);
+      imgWidth = Math.floor(imgWidth / widthRatio);
+      imgHeight = Math.floor(imgHeight / widthRatio);
     } else {
-      imgWidth = parseInt(imgWidth / heightRatio, 10);
-      imgHeight = parseInt(imgHeight / heightRatio, 10);
+      imgWidth = Math.floor(imgWidth / heightRatio);
+      imgHeight = Math.floor(imgHeight / heightRatio);
     }
   }
-  var left = parseInt((originalWidth - imgWidth) / 2);
-  var top = parseInt((originalHeight - imgHeight) / 2);
+  var left = Math.floor((originalWidth - imgWidth) / 2);
+  var top = Math.floor((originalHeight - imgHeight) / 2);
 
   this.originalCtx.drawImage(this.hiddenImage, left, top, imgWidth, imgHeight);
 };
@@ -162,10 +162,10 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
 
   if (ratio !== originalRatio) {
     if (ratio > originalRatio) {
-      height = parseInt(width / ratio, 10);
+      height = Math.floor(width / ratio);
       top = (this.original.clientHeight - height) / 2;
     } else {
-      width = parseInt(height * ratio, 10);
+      width = Math.floor(height * ratio);
       left = (this.original.clientWidth - width) / 2;
     }
   }
@@ -213,7 +213,7 @@ ImageShaver.prototype.showCropRectangle = function() {
  */
 ImageShaver.prototype.showResizeNodes = function(rect) {
   var ns = this.NODE_SIZE;
-  var nodeDiff = parseInt(ns / 2, 10);
+  var nodeDiff = Math.floor(ns / 2);
   var rn = [
     [rect[0] - nodeDiff, rect[1] - nodeDiff, ns, ns],
     [rect[0] + rect[2] - nodeDiff, rect[1] - nodeDiff, ns, ns],
@@ -306,8 +306,8 @@ ImageShaver.prototype.highlightHoveredNode = function(e) {
   var node = this.isEventOnNode(e);
   if (node) {
     this.originalCtx.fillRect(
-      node[0] - parseInt(this.NODE_INCREASE / 2, 10),
-      node[1] - parseInt(this.NODE_INCREASE / 2, 10),
+      node[0] - Math.floor(this.NODE_INCREASE / 2),
+      node[1] - Math.floor(this.NODE_INCREASE / 2),
       node[2] + this.NODE_INCREASE,
       node[3] + this.NODE_INCREASE
     );
@@ -402,28 +402,28 @@ ImageShaver.prototype.calculateCropRectangleSize = function(corner, newPos) {
       leftDif = this.cropRectangle[0] - newPos[0];
       newLeft = newPos[0];
       newWidth = this.cropRectangle[2] + leftDif;
-      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newHeight = Math.floor((newWidth * ratio[1]) / ratio[0]);
       newTop = this.cropRectangle[1] + (this.cropRectangle[3] - newHeight);
       break;
     case 3:
       leftDif = this.cropRectangle[0] - newPos[0];
       newLeft = newPos[0];
       newWidth = this.cropRectangle[2] + leftDif;
-      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newHeight = Math.floor((newWidth * ratio[1]) / ratio[0]);
       newTop = this.cropRectangle[1];
       break;
     case 1:
       leftDif = (this.cropRectangle[0] + this.cropRectangle[2]) - newPos[0];
       newLeft = this.cropRectangle[0];
       newWidth = this.cropRectangle[2] - leftDif;
-      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newHeight = Math.floor((newWidth * ratio[1]) / ratio[0]);
       newTop = this.cropRectangle[1] + (this.cropRectangle[3] - newHeight);
       break;
     case 2:
       leftDif = (this.cropRectangle[0] + this.cropRectangle[2]) - newPos[0];
       newLeft = this.cropRectangle[0];
       newWidth = this.cropRectangle[2] - leftDif;
-      newHeight = parseInt((newWidth * ratio[1]) / ratio[0], 10);
+      newHeight = Math.floor((newWidth * ratio[1]) / ratio[0]);
       newTop = this.cropRectangle[1];
       break;
   }
