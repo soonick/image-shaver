@@ -446,3 +446,11 @@ ImageShaver.prototype.resizeCropArea = function(e) {
   this.cropRectangle = newRect;
   this.showCropRectangle();
 };
+
+/**
+ * Returns a base64 encoded png from the preview canvas
+ * @returns {string} - resulting image
+ */
+ImageShaver.prototype.getBase64 = function() {
+  return this.preview.toDataURL();
+};
