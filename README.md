@@ -44,3 +44,7 @@ To run the tests use:
 ```bash
 gulp health
 ```
+
+## Demo
+
+You can find a demo here: [http://jsfiddle.net/g2s6c9x7/](http://jsfiddle.net/g2s6c9x7/)
