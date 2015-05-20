@@ -449,9 +449,37 @@ ImageShaver.prototype.resizeCropArea = function(e) {
 };
 
 /**
- * Returns a base64 encoded png from the preview canvas
+ * Returns a base64 encoded png in the given size
+ * @param {array} size - Array containing size [width, height]
  * @returns {string} - resulting image
  */
-ImageShaver.prototype.getBase64 = function() {
-  return this.preview.toDataURL();
+ImageShaver.prototype.getBase64 = function(size) {
+  // Remove crop rectangle from original image
+  this.original.width = this.original.width;
+  this.drawHiddenImage();
+
+  // Create new canvas with given size
+  var canvas = document.createElement('CANVAS');
+  canvas.style.width = size[0];
+  canvas.style.height = size[1];
+  canvas.width = size[0];
+  canvas.height = size[1];
+  var ctx = canvas.getContext('2d');
+
+  ctx.drawImage(
+    this.original,
+    this.cropRectangle[0],
+    this.cropRectangle[1],
+    this.cropRectangle[2],
+    this.cropRectangle[3],
+    0,
+    0,
+    size[0],
+    size[1]
+  );
+
+  // Add crop rectangle to original image
+  this.showCropRectangle();
+
+  return canvas.toDataURL();
 };
