@@ -177,6 +177,7 @@ ImageShaver.prototype.calculateLargestRectangle = function() {
  * Updates preview picture with contents inside the crop rectangle
  */
 ImageShaver.prototype.updatePreview = function() {
+  this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height);
   this.previewCtx.drawImage(
     this.original,
     this.cropRectangle[0],

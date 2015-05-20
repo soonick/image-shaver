@@ -574,4 +574,20 @@ describe('imageShaver', function() {
       proclaim.deepEqual(this.instance.originalCtx.rect.args[0], expected);
     });
   });
+
+  describe('updatePreview', function() {
+    it('clears preview before adding image', function() {
+      this.instance.previewCtx = {
+        clearRect: sinon.spy(),
+        drawImage: sinon.spy()
+      };
+      this.instance.cropRectangle = [1, 1, 1, 1];
+
+      this.instance.updatePreview();
+
+      this.instance.previewCtx.clearRect.calledBefore(
+        this.instance.previewCtx.drawImage
+      );
+    });
+  });
 });
